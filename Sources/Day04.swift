@@ -68,7 +68,7 @@
 /// In this example, an X-MAS appears 9 times.
 ///
 /// Flip the word search from the instructions back over to the word search side and try again. How many times does an X-MAS appear?
-/// 
+///
 struct Day04: AdventDay {
 
   private let testInput: String = #"""
@@ -88,58 +88,55 @@ struct Day04: AdventDay {
 
   func part1() -> Any {
     let char2DArray = parseInput(input: testInput)
-
     assert(!char2DArray.isEmpty)
     assert(char2DArray.count == 10)
     for chars in char2DArray {
-      assert(chars.count == 10)
+        assert(chars.count == 10)
     }
 
     let count = countWordInChar2DArray(char2DArray: char2DArray, word: "XMAS")
-
     assert(count == 18)
 
     return countWordInChar2DArray(char2DArray: parseInput(input: data), word: "XMAS")
   }
 
-  private func countWordInChar2DArray(char2DArray: [[Character]], word: String) -> Int {
-    var count = 0
+  func part2() -> Any {
+    let char2DArray = parseInput(input: testInput)
+    assert(!char2DArray.isEmpty)
+    assert(char2DArray.count == 10)
+    for chars in char2DArray {
+        assert(chars.count == 10)
+    }
 
+    let count = countXMasInChar2DArray(char2DArray: char2DArray)
+    assert(count == 9)
+
+    return countXMasInChar2DArray(char2DArray: parseInput(input: data))
+  }
+
+  private func countWordInChar2DArray(
+    char2DArray: [[Character]],
+    word: String
+  ) -> Int {
+    var count = 0
     for (i, lines) in char2DArray.enumerated() {
       for (j, _) in lines.enumerated() {
         count += isWordAt(char2DArray: char2DArray, word: word, i: i, j: j)
       }
     }
-
     return count
   }
 
-  private func isWordAt(
-    char2DArray: [[Character]],
-    word: String,
-    i: Int,
-    j: Int
-  ) -> Int {
-    var count = 0
-    guard char2DArray.indices.contains(i) else { return count }
-    guard char2DArray[i].indices.contains(j) else { return count }
-
-    let letter = char2DArray[i][j]
-    if letter != word.first { return count }
-
-    for direction in Direction.allCases {
-      if isInDirection(
-        word: word,
-        char2DArray: char2DArray,
-        startI: i,
-        startJ: j,
-        direction: direction
-      ) {
-        count += 1
-      }
+  private func isWordAt(char2DArray: [[Character]], word: String, i: Int, j: Int) -> Int {
+    guard char2DArray.indices.contains(i), char2DArray[i].indices.contains(j),
+      char2DArray[i][j] == word.first
+    else {
+      return 0
     }
 
-    return count
+    return Direction.allCases.reduce(0) { count, direction in
+      count + (isInDirection(word: word, char2DArray: char2DArray, startI: i, startJ: j, direction: direction) ? 1 : 0)
+    }
   }
 
   private func isInDirection(
@@ -149,26 +146,14 @@ struct Day04: AdventDay {
     startJ: Int,
     direction: Direction
   ) -> Bool {
-    var match = false
-
     for charIndex in 1..<word.count {
-
       let (i, j) = goInDirection(
         startI: startI, startJ: startJ, steps: charIndex, direction: direction)
-
-      guard char2DArray.indices.contains(i) else { break }
-      guard char2DArray[i].indices.contains(j) else { break }
-
-      if char2DArray[i][j] == word[word.index(word.startIndex, offsetBy: charIndex)] {
-        if charIndex == word.count - 1 {
-          match = true
-        }
-      } else {
-        break
-      }
+      guard char2DArray.indices.contains(i), char2DArray[i].indices.contains(j),
+        char2DArray[i][j] == word[word.index(word.startIndex, offsetBy: charIndex)]
+      else { return false }
     }
-
-    return match
+    return true
   }
 
   private func goInDirection(
@@ -177,113 +162,51 @@ struct Day04: AdventDay {
     steps: Int,
     direction: Direction
   ) -> (i: Int, j: Int) {
-    var i = startI
-    var j = startJ
-
+    var (i, j) = (startI, startJ)
     switch direction {
-    case .east:
-      j -= steps
-
-    case .west:
-      j += steps
-
-    case .north:
-      i += steps
-
-    case .northEast:
-      i += steps
-      j -= steps
-
-    case .northWest:
-      i += steps
-      j += steps
-
-    case .south:
-      i -= steps
-
-    case .southEast:
-      i -= steps
-      j -= steps
-
-    case .southWest:
-      i -= steps
-      j += steps
+    case .east: j -= steps
+    case .west: j += steps
+    case .north: i += steps
+    case .northEast: (i, j) = (i + steps, j - steps)
+    case .northWest: (i, j) = (i + steps, j + steps)
+    case .south: i -= steps
+    case .southEast: (i, j) = (i - steps, j - steps)
+    case .southWest: (i, j) = (i - steps, j + steps)
     }
-
     return (i, j)
-  }
-
-  private enum Direction: CaseIterable {
-    case east, west, north, northEast, northWest, south, southEast, southWest
-  }
-
-  func part2() -> Any {
-    let char2DArray = parseInput(input: testInput)
-
-    assert(!char2DArray.isEmpty)
-    assert(char2DArray.count == 10)
-    for chars in char2DArray {
-      assert(chars.count == 10)
-    }
-
-    let count = countXMasInChar2DArray(char2DArray: char2DArray)
-
-    assert(count == 9)
-
-    return countXMasInChar2DArray(char2DArray: parseInput(input: data))
   }
 
   private func countXMasInChar2DArray(char2DArray: [[Character]]) -> Int {
     var count = 0
-
     for (i, lines) in char2DArray.enumerated() {
       for (j, _) in lines.enumerated() {
         count += isXmasAt(char2DArray: char2DArray, i: i, j: j)
       }
     }
-
     return count
   }
 
-  private func isXmasAt(
-    char2DArray: [[Character]],
-    i: Int,
-    j: Int
-  ) -> Int {
-    var count = 0
-    guard char2DArray.indices.contains(i - 1) else { return count }
-    guard char2DArray.indices.contains(i + 1) else { return count }
-    guard char2DArray[i - 1].indices.contains(j - 1) else { return count }
-    guard char2DArray[i + 1].indices.contains(j + 1) else { return count }
-
-    let letter = char2DArray[i][j]
-    if letter != "A" { return count }
+  private func isXmasAt(char2DArray: [[Character]], i: Int, j: Int) -> Int {
+    guard char2DArray.indices.contains(i - 1), char2DArray.indices.contains(i + 1),
+      char2DArray[i - 1].indices.contains(j - 1), char2DArray[i + 1].indices.contains(j + 1),
+      char2DArray[i][j] == "A"
+    else {
+      return 0
+    }
 
     let seToNw = char2DArray[i - 1][j - 1] == "M" && char2DArray[i + 1][j + 1] == "S"
     let swToNe = char2DArray[i - 1][j + 1] == "M" && char2DArray[i + 1][j - 1] == "S"
     let nwToSe = char2DArray[i + 1][j + 1] == "M" && char2DArray[i - 1][j - 1] == "S"
     let neToSw = char2DArray[i + 1][j - 1] == "M" && char2DArray[i - 1][j + 1] == "S"
 
-    if (seToNw || nwToSe) && (swToNe || neToSw) {
-      count += 1
-    }
-
-    return count
+    return (seToNw || nwToSe) && (swToNe || neToSw) ? 1 : 0
   }
 
   private func parseInput(input: String) -> [[Character]] {
-    let lines = input.split(separator: "\n")
-
-    var chars2DArray = [[Character]]()
-    for (_, line) in lines.enumerated() {
-      var jArray: [Character] = []
-      for (_, char) in line.enumerated() {
-        jArray.append(char)
-      }
-
-      chars2DArray.append(jArray)
-    }
-
-    return chars2DArray
+    return input.split(separator: "\n").map { Array($0) }
   }
+}
+
+private enum Direction: CaseIterable {
+  case east, west, north, northEast, northWest, south, southEast, southWest
 }
